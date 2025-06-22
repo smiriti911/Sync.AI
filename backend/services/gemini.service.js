@@ -56,26 +56,66 @@ export const generateProjectName = async (message) => {
 };
 
 
+//working function
 
-export const generateProjectCodeStructure = async (message) => {
+// export const generateProjectCodeStructure = async (message) => {
 
+//   const model = genAI.getGenerativeModel({
+//     model: "gemini-1.5-flash", // or 1.5-pro if available
+//     generationConfig: {
+//       responseMimeType: "application/json",
+//       temperature: 0.75,
+//       maxOutputTokens: 8192,
+//     },
+//   });
+
+//   const result = await model.generateContent(message);
+//   const text = await result.response.text();
+
+//   try {
+//     const parsed = JSON.parse(text);
+//     return parsed.files; // { "filename": "content", ... }
+//   } catch (err) {
+//     console.error("Failed to parse Gemini response as JSON:", text);
+//     throw new Error("Invalid Gemini response format");
+//   }
+// };
+
+export const generateProjectCodeStructure = async (message, history) => {
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash", // or 1.5-pro if available
+    model: "gemini-1.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
-      temperature: 0.75,
-      maxOutputTokens: 8192,
+      temperature: 0.4,
     },
   });
 
-  const result = await model.generateContent(message);
-  const text = await result.response.text();
+  const chat = model.startChat({ history });
 
-  try {
-    const parsed = JSON.parse(text);
-    return parsed.files; // { "filename": "content", ... }
-  } catch (err) {
-    console.error("Failed to parse Gemini response as JSON:", text);
-    throw new Error("Invalid Gemini response format");
+  const result = await chat.sendMessage(message);
+  const response = await result.response;
+  const text = await response.text();
+
+  // 🔍 Try to extract JSON block from markdown-style or plain text
+  const match = text.match(/```json\s*(\{[\s\S]*?\})\s*```|(\{[\s\S]*\})/);
+  const rawJson = match?.[1] || match?.[2];
+
+  if (!rawJson) {
+    console.error("Full Gemini response:\n", text);
+    throw new Error("No valid JSON found in Gemini response");
   }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch (err) {
+    console.error("Failed to parse JSON:\n", rawJson);
+    throw new Error("Gemini response JSON is invalid");
+  }
+
+  if (!parsed || typeof parsed !== "object" || !parsed.files) {
+    throw new Error("Invalid Gemini response: missing 'files' field.");
+  }
+
+  return parsed.files;
 };

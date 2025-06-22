@@ -198,6 +198,47 @@ export const getMessages = async (req, res) => {
 
 
 // In controllers/project.controller.js
+// working 
+// export const generateProjectCode = async (req, res) => {
+//   try {
+//     const { projectId } = req.params;
+//     const { message } = req.body;
+
+//     const project = await projectModel.findById(projectId);
+//     if (!project) {
+//       return res.status(404).json({ error: 'Project not found' });
+//     }
+
+//     const files = await generateProjectCodeStructure(message);
+
+//     // Clean and normalize content for MongoDB schema (expects string)
+//     const cleanedFiles = Object.entries(files).map(([name, content]) => {
+//       let actualContent = content;
+
+//       // If content is an object with code key, extract it
+//       if (typeof content === 'object' && content.code) {
+//         actualContent = content.code;
+//       }
+
+//       // Ensure it's a string (fallback to empty string)
+//       return {
+//         name,
+//         content: typeof actualContent === 'string' ? actualContent : '',
+//       };
+//     });
+
+//     // Optional: Filter out empty content files
+//     const nonEmptyFiles = cleanedFiles.filter(f => f.content.trim() !== '');
+
+//     project.files = nonEmptyFiles;
+//     await project.save();
+
+//     res.status(200).json({ files: project.files });
+//   } catch (err) {
+//     console.error('Error generating project code:', err);
+//     res.status(500).json({ error: 'Failed to generate code' });
+//   }
+// };
 
 export const generateProjectCode = async (req, res) => {
   try {
@@ -209,25 +250,32 @@ export const generateProjectCode = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const files = await generateProjectCodeStructure(message);
+    // Convert stored messages into Gemini-compatible history format
+    const history = project.messages.map(msg => ({
+  role: msg.role === 'assistant' ? 'model' : msg.role,
+  parts: [{ text: msg.content }],
+}));
 
-    // Clean and normalize content for MongoDB schema (expects string)
+// Add the new user message
+history.push({
+  role: 'user',
+  parts: [{ text: message }],
+});
+
+
+    const files = await generateProjectCodeStructure(message, history);
+
     const cleanedFiles = Object.entries(files).map(([name, content]) => {
       let actualContent = content;
-
-      // If content is an object with code key, extract it
       if (typeof content === 'object' && content.code) {
         actualContent = content.code;
       }
-
-      // Ensure it's a string (fallback to empty string)
       return {
         name,
         content: typeof actualContent === 'string' ? actualContent : '',
       };
     });
 
-    // Optional: Filter out empty content files
     const nonEmptyFiles = cleanedFiles.filter(f => f.content.trim() !== '');
 
     project.files = nonEmptyFiles;
