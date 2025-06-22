@@ -1,0 +1,40 @@
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+.colorful-spinner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  position: relative;
+  animation: spin 1s linear infinite;
+}
+
+.colorful-spinner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 -24px 0 0 #fde68a,   /* Yellow */
+    16px -16px 0 0 #f9a8d4, /* Pink */
+    24px 0 0 0 #c084fc,    /* Purple */
+    16px 16px 0 0 #a5f3fc, /* Blue */
+    0 24px 0 0 #fca5a5,    /* Red */
+    -16px 16px 0 0 #fcd34d,/* Orange */
+    -24px 0 0 0 #a7f3d0,   /* Green */
+    -16px -16px 0 0 #ddd6fe; /* Lavender */
+  filter: blur(0.5px);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
