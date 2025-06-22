@@ -204,24 +204,36 @@ export const generateProjectCode = async (req, res) => {
     const { projectId } = req.params;
     const { message } = req.body;
 
-    const project = await Project.findById(projectId);
-    if (!project) return res.status(404).json({ error: 'Project not found' });
+    const project = await projectModel.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
 
     const files = await generateProjectCodeStructure(message);
 
-    // ✅ Sanitize files to avoid saving invalid or empty entries
-    const sanitizedFiles = Object.entries(files)
-      .filter(([name, content]) => name && typeof content === 'string' && content.trim() !== '')
-      .map(([name, content]) => ({
-        name: name.trim(),
-        content: content.trim(),
-      }));
+    // Clean and normalize content for MongoDB schema (expects string)
+    const cleanedFiles = Object.entries(files).map(([name, content]) => {
+      let actualContent = content;
 
-    project.files = sanitizedFiles;
+      // If content is an object with code key, extract it
+      if (typeof content === 'object' && content.code) {
+        actualContent = content.code;
+      }
 
+      // Ensure it's a string (fallback to empty string)
+      return {
+        name,
+        content: typeof actualContent === 'string' ? actualContent : '',
+      };
+    });
+
+    // Optional: Filter out empty content files
+    const nonEmptyFiles = cleanedFiles.filter(f => f.content.trim() !== '');
+
+    project.files = nonEmptyFiles;
     await project.save();
 
-    res.json({ files: project.files });
+    res.status(200).json({ files: project.files });
   } catch (err) {
     console.error('Error generating project code:', err);
     res.status(500).json({ error: 'Failed to generate code' });
