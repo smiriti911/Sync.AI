@@ -5,14 +5,15 @@ import { FaArrowUp } from 'react-icons/fa';
 import Markdown from 'markdown-to-jsx';
 import axios from '../../config/axios';
 import { useAiChat } from '@/context/AiChatContext';
-import PROMPTS from './Prompt'; // ✅ import your prompt definition
+import PROMPTS from './Prompt';
 
-export default function AIChatView({ onFilesGenerated }) {
+export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
   const { messages, setMessages, loading, setLoading, fetchMessages, projectId } = useAiChat();
 
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,6 +25,23 @@ export default function AIChatView({ onFilesGenerated }) {
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   }, [inputMessage]);
+
+  useEffect(() => {
+    if (!initializedRef.current && messages.length > 1) {
+      initializedRef.current = true;
+
+      const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
+      const lastUserBeforeAssistant = [...messages]
+        .reverse()
+        .find((m, i, arr) => m.role === 'user' && arr[i - 1]?.role === 'assistant');
+
+      if (lastAssistant && lastUserBeforeAssistant) {
+        console.log("🌀 Regenerating code from last user message on load:", lastUserBeforeAssistant.content);
+        setIsGenerating?.(true); // ✅ Trigger loading overlay
+        generateCode(lastUserBeforeAssistant.content);
+      }
+    }
+  }, [messages, projectId]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -58,15 +76,18 @@ export default function AIChatView({ onFilesGenerated }) {
 
       if (Array.isArray(updatedMessages)) {
         setMessages(updatedMessages.map(normalize));
-        const assistantMsg = updatedMessages.find((m) => m.role === 'assistant');
-        if (assistantMsg) generateAiCode(userMessage.content); // ✅
       } else if (uMsg && aiResponse) {
-        setMessages((prev) => [
-          ...prev.filter((m) => m._id !== userMessage._id),
+        const newMessages = [
+          ...messages.filter((m) => m._id !== userMessage._id),
           normalize(uMsg),
           normalize(aiResponse),
-        ]);
-        generateAiCode(userMessage.content); // ✅
+        ];
+        setMessages(newMessages);
+
+        // ✅ Trigger loading before code generation
+        setIsGenerating?.(true);
+        console.log("⚡ Code generation triggered from chat response:", normalize(uMsg).content);
+        await generateCode(normalize(uMsg).content);
       } else {
         console.warn('Unexpected API response format after sending message:', response.data);
         fetchMessages();
@@ -78,14 +99,19 @@ export default function AIChatView({ onFilesGenerated }) {
     }
   };
 
-  const generateAiCode = async (prompt) => {
+  const generateCode = async (userMessageText) => {
+    if (!userMessageText || !projectId) return;
+
     const token = localStorage.getItem('token');
-    if (!token || !prompt) return;
+    if (!token) return;
 
     try {
+      console.log("🔧 Starting code generation with prompt:", userMessageText);
       const response = await axios.post(
         `/projects/${projectId}/generate-code`,
-        { message: `${prompt} ${PROMPTS.CODE_GEN_PROMPT}` },
+        {
+          message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}`,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -94,20 +120,31 @@ export default function AIChatView({ onFilesGenerated }) {
         }
       );
 
-      const validFiles = (response.data?.files || []).filter(
-        (file) => file?.name && typeof file.content === 'string' && file.content.trim()
+      const generatedFilesArray = (response.data?.files || []).filter(
+        (file) =>
+          file?.name &&
+          typeof file.content === 'string' &&
+          file.content.trim() !== ''
       );
 
-      if (validFiles.length && typeof onFilesGenerated === 'function') {
-        onFilesGenerated(validFiles); // ✅ notify CodeView
+      const generatedFiles = Object.fromEntries(
+        generatedFilesArray.map((f) => [f.name, { code: f.content }])
+      );
+
+      console.log("✅ Code generation completed. Files:", Object.keys(generatedFiles));
+
+      if (onCodeGenerated && typeof onCodeGenerated === 'function') {
+        onCodeGenerated(generatedFiles);
       }
-    } catch (err) {
-      console.error('Error generating code:', err);
+    } catch (error) {
+      console.error("🔥 Code generation failed:", error);
+      if (error.response) console.error("🧾 Details:", error.response.data);
     }
   };
 
   const renderMessageContent = (content) => <Markdown>{content}</Markdown>;
 
+  // 🧠 UI remains untouched
   return (
     <div className="flex flex-col h-166 max-w-lg lg:max-w-xl mx-auto bg-neutral-900">
       <div className="flex-1 overflow-y-auto p-2 scrollbar-hidden space-y-2">
