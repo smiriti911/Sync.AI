@@ -96,13 +96,13 @@ const ChatArea = ({ onClose }) => {
             <div
               key={index}
               className={`flex ${
-                msg.sender === user?._id ? "justify-end" : "justify-start"
+                msg.senderId === user?._id ? "justify-end" : "justify-start"
               }`}
             >
               <div
                 className={`
                   ${
-                    msg.sender === user?._id
+                    msg.senderId === user?._id
                       ? "bg-gradient-to-br from-indigo-400/40 to-indigo-200/10"
                       : "bg-gradient-to-br from-emerald-400/40 to-emerald-200/10"
                   }
@@ -111,10 +111,11 @@ const ChatArea = ({ onClose }) => {
                 `}
               >
                 <small className="text-xs font-semibold text-white/100">
-                  {msg.sender === user?._id
-                    ? "You"
-                    : users.find((u) => u._id === msg.sender)?.email ||
-                      "Unknown"}
+                  {msg.senderId === user?._id
+  ? "You"
+  : msg.senderEmail ||
+    users.find((u) => u._id === msg.senderId)?.email ||
+    "Unknown"}
                   :
                 </small>
                 <p className="text-sm break-words">{msg.text}</p>

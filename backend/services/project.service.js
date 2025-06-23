@@ -181,3 +181,27 @@ export const getLatestFileVersion = async (projectId) => {
     empty: false,
   };
 };
+
+//save user-message 
+
+export const saveUserMessage = async (projectId, messageData) => {
+  return await projectModel.findByIdAndUpdate(
+    projectId,
+    {
+      $push: {
+        userMessages: {
+          sender: messageData.sender,
+          message: messageData.message, // ✅ FIXED: use `message` not `content`
+          timestamp: new Date(),
+        }
+      }
+    },
+    { new: true }
+  );
+};
+
+export const getUserMessages = async (projectId) => {
+  const project = await projectModel.findById(projectId).populate('userMessages.sender', 'name email');
+  if (!project) throw new Error('Project not found');
+  return project.userMessages;
+};

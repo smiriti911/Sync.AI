@@ -9,6 +9,9 @@ import * as authMiddleware from '../middleware/auth.middleware.js';
 
 import { getLatestVersionController } from '../controllers/project.controller.js';
 
+import { fetchUserMessages, createUserMessage } from '../controllers/project.controller.js';
+
+
 const routes= Router();
 
 routes.post('/create', 
@@ -34,8 +37,7 @@ routes.get('/get-project/:projectId',
   projectController.getProjectById
 )
 
-routes.post(
-  '/create-with-message',
+routes.post('/create-with-message',
   body('message').notEmpty().withMessage('Message is required'),
   authMiddleware.authUser,
   createProjectWithMessage
@@ -44,22 +46,19 @@ routes.post(
 
 
 // Fetch all messages for a project
-routes.get(
-  '/:projectId/messages',
+routes.get('/:projectId/messages',
   authMiddleware.authUser,
   projectController.getMessages
 );
 
 // Add a new message to a project, get AI reply, save both
-routes.post(
-  '/:projectId/messages',
+routes.post('/:projectId/messages',
   authMiddleware.authUser,
   body('message').notEmpty().withMessage('Message is required'),
   projectController.addMessage
 );
 
-routes.post(
-  '/:projectId/generate-code',
+routes.post( '/:projectId/generate-code',
    authMiddleware.authUser,
   body('message').notEmpty().withMessage('Prompt message is required'),
   projectController.generateProjectCode
@@ -68,5 +67,10 @@ routes.post(
 // latest file route
 
 routes.get('/:projectId/latest-version', authMiddleware.authUser, getLatestVersionController);
+
+routes.get('/:projectId/user-messages', authMiddleware.authUser, fetchUserMessages);
+
+
+routes.post('/:projectId/user-messages', authMiddleware.authUser, createUserMessage);
 
 export default routes;
