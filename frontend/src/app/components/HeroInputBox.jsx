@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { FaArrowUp, FaLink } from "react-icons/fa6";
-import axios from "../../config/axios";
+import axios from "@/config/axios";
+import { useRouter } from 'next/navigation';
 
-// Import router from next/navigation if using app directory
-import { useRouter } from 'next/navigation';  // or 'next/navigation' if app dir
-
-export default function InputBox() {
-  const [input, setInput] = useState("");
+export default function HeroInputBox({ input, setInput, onSubmit }) {
   const [isLoading, setIsLoading] = useState(false);
   const textareaRef = useRef(null);
   const router = useRouter();
@@ -42,19 +39,14 @@ export default function InputBox() {
 
       console.log('Project created:', res.data);
       setInput('');
-
-      // Redirect to dynamic project page
       router.push(`/userproject/${res.data._id}`);
-
     } catch (err) {
-      if (err.response) {
-        console.log('Error creating project:', err.response.data);
-      } else {
-        console.log('Error submitting project:', err.message);
-      }
+      console.log('Error creating project:', err?.response?.data || err.message);
     } finally {
       setIsLoading(false);
     }
+
+    if (onSubmit) onSubmit();
   };
 
   const handleKeyDown = (e) => {

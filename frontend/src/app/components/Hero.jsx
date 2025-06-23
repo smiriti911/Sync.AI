@@ -9,13 +9,13 @@ export default function Hero() {
 
   const suggestions = [
     [
-      "Social media dashboard with analytics",
-      "A portfolio website showcasing development projects with live demos, GitHub links and tech stack details. Include a skills section and contact form.",
-      "A dynamic video using Remotion that animates code snippets, logos and text transitions. Include smooth animations and a modern tech theme.",
+      "Tic-Tac-Toe game ",
+      "A simple TO-DO list app with React",
+      "A Dashboard with interactive charts",
     ],
     [
-      "A minimal e-commerce store with product catalog, cart, checkout and order tracking. Just the UI first, I'll add stripe payment later.",
-      "Real-time chat with socket.io",
+      "A minimal e-commerce store with product catalog, cart, checkout and order tracking.",
+      "A personal blog with markdown support, comments, and social sharing.",
     ],
   ];
 
