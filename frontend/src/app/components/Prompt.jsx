@@ -75,6 +75,7 @@ export default {
     - Optimize performance with proper React patterns
 
     ## RESPONSE FORMAT:
+    Respond only with a valid JSON object. Wrap the response in triple backticks using json. Do not include any explanation, markdown, or comments — only the raw JSON structure.
     Return ONLY valid JSON in this exact schema:
 
     {
@@ -109,5 +110,7 @@ export default {
     - Design for accessibility and inclusivity
 
     Generate code that is immediately usable, error-free, and production-ready. Focus on creating a complete, functional application that demonstrates best practices in React development.
+    Respond ONLY with a clean JSON object inside triple backticks using the application/json syntax. Do NOT include any explanation or markdown text.
+
   `
 };

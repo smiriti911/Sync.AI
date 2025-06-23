@@ -37,7 +37,7 @@ export const generateProjectName = async (message) => {
     model: "gemini-2.0-flash",
     generationConfig: {
       maxOutputTokens: 10,
-      temperature: 0.3,
+      temperature: 0.75,
     },
   });
 
@@ -81,6 +81,48 @@ export const generateProjectName = async (message) => {
 //   }
 // };
 
+//working with history
+
+// export const generateProjectCodeStructure = async (message, history) => {
+//   const model = genAI.getGenerativeModel({
+//     model: "gemini-1.5-flash",
+//     generationConfig: {
+//       responseMimeType: "application/json",
+//       temperature: 0.4,
+//     },
+//   });
+
+//   const chat = model.startChat({ history });
+
+//   const result = await chat.sendMessage(message);
+//   const response = await result.response;
+//   const text = await response.text();
+
+//   // 🔍 Try to extract JSON block from markdown-style or plain text
+//   const match = text.match(/```json\s*(\{[\s\S]*?\})\s*```|(\{[\s\S]*\})/);
+//   const rawJson = match?.[1] || match?.[2];
+
+//   if (!rawJson) {
+//     console.error("Full Gemini response:\n", text);
+//     throw new Error("No valid JSON found in Gemini response");
+//   }
+
+//   let parsed;
+//   try {
+//     parsed = JSON.parse(rawJson);
+//   } catch (err) {
+//     console.error("Failed to parse JSON:\n", rawJson);
+//     throw new Error("Gemini response JSON is invalid");
+//   }
+
+//   if (!parsed || typeof parsed !== "object" || !parsed.files) {
+//     throw new Error("Invalid Gemini response: missing 'files' field.");
+//   }
+
+//   return parsed.files;
+// };
+
+
 export const generateProjectCodeStructure = async (message, history) => {
   const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
@@ -96,26 +138,33 @@ export const generateProjectCodeStructure = async (message, history) => {
   const response = await result.response;
   const text = await response.text();
 
-  // 🔍 Try to extract JSON block from markdown-style or plain text
+  // 🔍 Try to extract JSON
   const match = text.match(/```json\s*(\{[\s\S]*?\})\s*```|(\{[\s\S]*\})/);
   const rawJson = match?.[1] || match?.[2];
 
   if (!rawJson) {
-    console.error("Full Gemini response:\n", text);
+    console.error("❌ No JSON block found. Full Gemini response:\n", text);
     throw new Error("No valid JSON found in Gemini response");
   }
 
-  let parsed;
   try {
-    parsed = JSON.parse(rawJson);
+    // Basic sanitation (removes trailing commas, replaces smart quotes)
+    const cleanJson = rawJson
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]")
+      .replace(/[“”]/g, '"') // smart quotes
+      .replace(/[‘’]/g, "'")
+      .replace(/\u0000/g, '')          // remove null characters
+    .trim();
+    const parsed = JSON.parse(cleanJson);
+
+    if (!parsed || typeof parsed !== "object" || !parsed.files) {
+      throw new Error("Invalid Gemini response: missing 'files' field.");
+    }
+
+    return parsed.files;
   } catch (err) {
-    console.error("Failed to parse JSON:\n", rawJson);
+    console.error("❌ Failed to parse JSON. Raw block:\n", rawJson);
     throw new Error("Gemini response JSON is invalid");
   }
-
-  if (!parsed || typeof parsed !== "object" || !parsed.files) {
-    throw new Error("Invalid Gemini response: missing 'files' field.");
-  }
-
-  return parsed.files;
 };
