@@ -29,6 +29,14 @@ const fileSchema = new mongoose.Schema({
   }
 });
 
+const fileVersionSchema = new mongoose.Schema({
+  version: Number,
+  files: [fileSchema],
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 const projectSchema = new mongoose.Schema({
   name:{
@@ -46,7 +54,8 @@ const projectSchema = new mongoose.Schema({
     }
   ],
   messages: [messageSchema],
-  files: [fileSchema],
+  // files: [fileSchema],
+  fileVersions: [fileVersionSchema],
 });
 
 

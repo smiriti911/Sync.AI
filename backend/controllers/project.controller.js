@@ -240,31 +240,83 @@ export const getMessages = async (req, res) => {
 //   }
 // };
 
+//working with history
+
+// export const generateProjectCode = async (req, res) => {
+//   try {
+//     const { projectId } = req.params;
+//     const { message } = req.body;
+
+//     const project = await projectModel.findById(projectId);
+//     if (!project) {
+//       return res.status(404).json({ error: 'Project not found' });
+//     }
+
+//     // Convert stored messages into Gemini-compatible history format
+//     const history = project.messages.map(msg => ({
+//   role: msg.role === 'assistant' ? 'model' : msg.role,
+//   parts: [{ text: msg.content }],
+// }));
+
+// // Add the new user message
+// history.push({
+//   role: 'user',
+//   parts: [{ text: message }],
+// });
+
+
+//     const files = await generateProjectCodeStructure(message, history);
+
+//     const cleanedFiles = Object.entries(files).map(([name, content]) => {
+//       let actualContent = content;
+//       if (typeof content === 'object' && content.code) {
+//         actualContent = content.code;
+//       }
+//       return {
+//         name,
+//         content: typeof actualContent === 'string' ? actualContent : '',
+//       };
+//     });
+
+//     const nonEmptyFiles = cleanedFiles.filter(f => f.content.trim() !== '');
+
+//     project.files = nonEmptyFiles;
+//     await project.save();
+
+//     res.status(200).json({ files: project.files });
+//   } catch (err) {
+//     console.error('Error generating project code:', err);
+//     res.status(500).json({ error: 'Failed to generate code' });
+//   }
+// };
+
 export const generateProjectCode = async (req, res) => {
   try {
     const { projectId } = req.params;
     const { message } = req.body;
 
+    // Initial fetch to validate existence
     const project = await projectModel.findById(projectId);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    // Convert stored messages into Gemini-compatible history format
+    // Convert messages to Gemini-compatible format
     const history = project.messages.map(msg => ({
-  role: msg.role === 'assistant' ? 'model' : msg.role,
-  parts: [{ text: msg.content }],
-}));
+      role: msg.role === 'assistant' ? 'model' : msg.role,
+      parts: [{ text: msg.content }],
+    }));
 
-// Add the new user message
-history.push({
-  role: 'user',
-  parts: [{ text: message }],
-});
+    // Add new user message to history
+    history.push({
+      role: 'user',
+      parts: [{ text: message }],
+    });
 
-
+    // Generate new code files
     const files = await generateProjectCodeStructure(message, history);
 
+    // Clean and validate the generated files
     const cleanedFiles = Object.entries(files).map(([name, content]) => {
       let actualContent = content;
       if (typeof content === 'object' && content.code) {
@@ -278,10 +330,24 @@ history.push({
 
     const nonEmptyFiles = cleanedFiles.filter(f => f.content.trim() !== '');
 
-    project.files = nonEmptyFiles;
-    await project.save();
+    // 🔒 SAFE: Re-fetch latest to avoid version duplication
+    const freshProject = await projectModel.findById(projectId);
+    const newVersion = freshProject.fileVersions.length;
 
-    res.status(200).json({ files: project.files });
+    // Save new version
+    freshProject.fileVersions.push({
+      version: newVersion,
+      files: nonEmptyFiles,
+      timestamp: new Date(),
+    });
+
+    await freshProject.save();
+
+    res.status(200).json({
+      version: newVersion,
+      files: nonEmptyFiles,
+    });
+
   } catch (err) {
     console.error('Error generating project code:', err);
     res.status(500).json({ error: 'Failed to generate code' });

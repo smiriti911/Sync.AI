@@ -99,48 +99,99 @@ export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
     }
   };
 
-  const generateCode = async (userMessageText) => {
-    if (!userMessageText || !projectId) return;
 
-    const token = localStorage.getItem('token');
-    if (!token) return;
+//working function
 
-    try {
-      console.log("🔧 Starting code generation with prompt:", userMessageText);
-      const response = await axios.post(
-        `/projects/${projectId}/generate-code`,
-        {
-          message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}`,
+  // const generateCode = async (userMessageText) => {
+  //   if (!userMessageText || !projectId) return;
+
+  //   const token = localStorage.getItem('token');
+  //   if (!token) return;
+
+  //   try {
+  //     console.log("🔧 Starting code generation with prompt:", userMessageText);
+  //     const response = await axios.post(
+  //       `/projects/${projectId}/generate-code`,
+  //       {
+  //         message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}`,
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       }
+  //     );
+
+  //     const generatedFilesArray = (response.data?.files || []).filter(
+  //       (file) =>
+  //         file?.name &&
+  //         typeof file.content === 'string' &&
+  //         file.content.trim() !== ''
+  //     );
+
+  //     const generatedFiles = Object.fromEntries(
+  //       generatedFilesArray.map((f) => [f.name, { code: f.content }])
+  //     );
+
+  //     console.log("✅ Code generation completed. Files:", Object.keys(generatedFiles));
+
+  //     if (onCodeGenerated && typeof onCodeGenerated === 'function') {
+  //       onCodeGenerated(generatedFiles);
+  //     }
+  //   } catch (error) {
+  //     console.error("🔥 Code generation failed:", error);
+  //     if (error.response) console.error("🧾 Details:", error.response.data);
+  //   }
+  // };
+
+const generateCode = async (userMessageText) => {
+  if (!userMessageText || !projectId) return;
+
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    console.log("🔧 Starting code generation with prompt:", userMessageText);
+    
+    const response = await axios.post(
+      `/projects/${projectId}/generate-code`,
+      {
+        message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      const generatedFilesArray = (response.data?.files || []).filter(
-        (file) =>
-          file?.name &&
-          typeof file.content === 'string' &&
-          file.content.trim() !== ''
-      );
-
-      const generatedFiles = Object.fromEntries(
-        generatedFilesArray.map((f) => [f.name, { code: f.content }])
-      );
-
-      console.log("✅ Code generation completed. Files:", Object.keys(generatedFiles));
-
-      if (onCodeGenerated && typeof onCodeGenerated === 'function') {
-        onCodeGenerated(generatedFiles);
       }
-    } catch (error) {
-      console.error("🔥 Code generation failed:", error);
-      if (error.response) console.error("🧾 Details:", error.response.data);
+    );
+
+    const version = response.data?.version;
+    const generatedFilesArray = Array.isArray(response.data?.files)
+      ? response.data.files.filter(
+          (file) =>
+            file?.name &&
+            typeof file.content === 'string' &&
+            file.content.trim() !== ''
+        )
+      : [];
+
+    const generatedFiles = Object.fromEntries(
+      generatedFilesArray.map((f) => [f.name, { code: f.content }])
+    );
+
+    console.log(`✅ Code generation completed (version ${version}). Files:`, Object.keys(generatedFiles));
+
+    if (onCodeGenerated && typeof onCodeGenerated === 'function') {
+      onCodeGenerated(generatedFiles, version); // Optional: version can be used in UI
     }
-  };
+  } catch (error) {
+    console.error("🔥 Code generation failed:", error);
+    if (error.response) console.error("🧾 Details:", error.response.data);
+  }
+};
+
 
   const renderMessageContent = (content) => <Markdown>{content}</Markdown>;
 
