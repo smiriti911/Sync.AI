@@ -7,6 +7,8 @@ import { createProjectWithMessage } from '../controllers/project.controller.js';
 
 import * as authMiddleware from '../middleware/auth.middleware.js';
 
+import { getLatestVersionController } from '../controllers/project.controller.js';
+
 const routes= Router();
 
 routes.post('/create', 
@@ -62,5 +64,9 @@ routes.post(
   body('message').notEmpty().withMessage('Prompt message is required'),
   projectController.generateProjectCode
 )
+
+// latest file route
+
+routes.get('/:projectId/latest-version', authMiddleware.authUser, getLatestVersionController);
 
 export default routes;

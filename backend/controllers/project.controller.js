@@ -12,6 +12,8 @@ import { generateProjectName } from '../services/gemini.service.js';
 
 import { generateProjectCodeStructure } from '../services/gemini.service.js';
 import Project from '../models/project.model.js';
+import { getLatestFileVersion } from '../services/project.service.js';
+
 
 export const createProject= async(req, res)=>{
   const errors = validationResult(req);
@@ -351,5 +353,24 @@ export const generateProjectCode = async (req, res) => {
   } catch (err) {
     console.error('Error generating project code:', err);
     res.status(500).json({ error: 'Failed to generate code' });
+  }
+};
+
+
+//latest file controller 
+
+// controllers/project.controller.js
+
+
+
+export const getLatestVersionController = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const latestVersion = await getLatestFileVersion(projectId);
+
+    res.status(200).json(latestVersion);
+  } catch (error) {
+    console.error("Error fetching latest file version:", error.message);
+    res.status(404).json({ error: error.message });
   }
 };

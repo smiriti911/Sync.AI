@@ -26,22 +26,62 @@ export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
     }
   }, [inputMessage]);
 
+
+//initial codegenration on load with last user assistant message
+  // useEffect(() => {
+  //   if (!initializedRef.current && messages.length > 1) {
+  //     initializedRef.current = true;
+
+  //     const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
+  //     const lastUserBeforeAssistant = [...messages]
+  //       .reverse()
+  //       .find((m, i, arr) => m.role === 'user' && arr[i - 1]?.role === 'assistant');
+
+  //     if (lastAssistant && lastUserBeforeAssistant) {
+  //       console.log("🌀 Regenerating code from last user message on load:", lastUserBeforeAssistant.content);
+  //       setIsGenerating?.(true); // ✅ Trigger loading overlay
+  //       generateCode(lastUserBeforeAssistant.content);
+  //     }
+  //   }
+  // }, [messages, projectId]);
+
   useEffect(() => {
-    if (!initializedRef.current && messages.length > 1) {
-      initializedRef.current = true;
+  const fetchLatestVersion = async () => {
+    if (!projectId || initializedRef.current) return;
+    initializedRef.current = true;
 
-      const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
-      const lastUserBeforeAssistant = [...messages]
-        .reverse()
-        .find((m, i, arr) => m.role === 'user' && arr[i - 1]?.role === 'assistant');
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-      if (lastAssistant && lastUserBeforeAssistant) {
-        console.log("🌀 Regenerating code from last user message on load:", lastUserBeforeAssistant.content);
-        setIsGenerating?.(true); // ✅ Trigger loading overlay
-        generateCode(lastUserBeforeAssistant.content);
+    try {
+      setIsGenerating?.(true);
+      const res = await axios.get(`/projects/${projectId}/latest-version`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const files = res.data.files || [];
+      if (files.length === 0) {
+        console.log("📭 No files in latest version yet.");
+        return;
       }
+
+      const parsedFiles = Object.fromEntries(
+        files.map((f) => [f.name, { code: f.content }])
+      );
+
+      console.log("✅ Loaded latest version files:", Object.keys(parsedFiles));
+      onCodeGenerated?.(parsedFiles);
+    } catch (err) {
+      console.error("❌ Failed to fetch latest file version:", err);
+    } finally {
+      setIsGenerating?.(false);
     }
-  }, [messages, projectId]);
+  };
+
+  fetchLatestVersion();
+}, [projectId]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;

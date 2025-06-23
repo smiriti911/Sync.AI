@@ -151,3 +151,33 @@ export const getMessagesByProjectId = async (projectId) => {
 
   return project.messages;
 };
+
+//latest file
+
+// services/project.service.js
+
+
+export const getLatestFileVersion = async (projectId) => {
+  const project = await projectModel.findById(projectId);
+  if (!project) throw new Error("Project not found");
+
+  const versions = project.fileVersions || [];
+
+  if (versions.length === 0) {
+    return {
+      version: -1,
+      files: [],
+      timestamp: null,
+      empty: true,
+    };
+  }
+
+  const latest = versions[versions.length - 1];
+
+  return {
+    version: latest.version,
+    files: latest.files,
+    timestamp: latest.timestamp,
+    empty: false,
+  };
+};
