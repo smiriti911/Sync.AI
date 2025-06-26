@@ -70,7 +70,7 @@ export default function HeroInputBox({ input, setInput, onSubmit }) {
 
       <div className="flex justify-between items-center mt-2">
         <button className="hover:opacity-80 transition cursor-pointer" disabled={isLoading}
-         onClick={() => router.push('/userprojects')} 
+        onClick={() => router.push('/userprojects')} 
         >
           <FaLink className="text-2xl" />
         </button>

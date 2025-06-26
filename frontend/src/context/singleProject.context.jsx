@@ -88,8 +88,7 @@ export const SingleProjectProvider = ({ children }) => {
     fetchPersistedMessages();
 
     const socket = initializeSocket(project._id);
-    console.log('📡 Socket initialized for project:', project._id);
-
+   
     const messageHandler = (data) => {
   setMessages((prev) => [
     ...prev,

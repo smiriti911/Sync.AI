@@ -1,4 +1,3 @@
-// SidePanel.js
 import React from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { FiUser } from "react-icons/fi";
@@ -7,7 +6,6 @@ import { useSingleProject } from "../../context/singleProject.context";
 const SidePanel = ({ isOpen, togglePanel }) => {
   const { project } = useSingleProject();
 
-  // Get logged-in user ID (assuming stored in localStorage)
   const loggedInUserId =
     typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
@@ -15,45 +13,46 @@ const SidePanel = ({ isOpen, togglePanel }) => {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full w-[400px] bg-neutral-900 shadow-md transition-transform transform ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } z-50`}
+      className={`fixed w-[385px] mb-2 mx-2 mt-11 transition-transform duration-300 ease-in-out h-[calc(100%-3.25rem)] 
+        rounded-2xl border border-neutral-700 shadow-lg backdrop-blur-lg bg-neutral-950
+        overflow-hidden flex flex-col z-50
+        ${isOpen ? "translate-x-0" : "-translate-x-[calc(100%+1rem)]"}`}
     >
       {/* Header */}
-      <header className="bg-neutral-800/50 p-4 text-white flex justify-between items-center h-16">
-        <h2 className="text-xl">Collaborators</h2>
+      <header className="flex justify-between items-center bg-neutral-900/50 h-12 px-4 rounded-t-2xl border-b border-neutral-800">
+        <h2 className="text-white text-lg font-semibold">Collaborators</h2>
         <button
-          className="text-2xl hover:bg-neutral-700 transition rounded-full p-2"
           onClick={togglePanel}
+          className="text-rose-400 hover:bg-neutral-800/70 p-2 rounded-full transition"
         >
-          <AiOutlineClose className="text-rose-400" />
+          <AiOutlineClose className="text-xl" />
         </button>
       </header>
 
-      {/* Collaborators List (including self) */}
-      <div className="overflow-y-auto h-[calc(100%-4rem)] custom-scrollbar">
+      {/* Collaborators List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hidden">
         {users.length > 0 ? (
           users.map((user) => (
             <div
               key={user._id}
-              className="flex items-center gap-4 p-3 text-white hover:bg-neutral-800/50 transition duration-300 w-full"
+              className="flex items-center gap-4 p-3 rounded-xl text-white hover:bg-neutral-800/50 transition cursor-default"
             >
-              <div className="flex items-center justify-center w-12 h-12 bg-neutral-800 rounded-full hover:bg-neutral-700 transition">
-                <FiUser className="text-2xl text-emerald-300" />
+              <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center">
+                <FiUser className="text-emerald-300 text-xl" />
               </div>
               <div>
-                <h1 className="text-lg">
+                <h1 className="text-sm font-semibold">
                   {user.name}{" "}
                   {user._id === loggedInUserId && (
                     <span className="text-xs text-emerald-400">(You)</span>
                   )}
                 </h1>
-                <p className="text-white">{user.email}</p>
+                <p className="text-xs text-white/70">{user.email}</p>
               </div>
             </div>
           ))
         ) : (
-          <p className="text-white p-4">No collaborators found.</p>
+          <p className="text-white/60 text-sm">No collaborators found.</p>
         )}
       </div>
     </div>

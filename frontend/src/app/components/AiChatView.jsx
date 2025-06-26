@@ -9,12 +9,12 @@ import PROMPTS from './Prompt';
 
 export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
   const { messages, setMessages, loading, setLoading, fetchMessages, projectId } = useAiChat();
-
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const initializedRef = useRef(false);
 
+  // Auto-scroll and adjust height
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
@@ -26,62 +26,38 @@ export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
     }
   }, [inputMessage]);
 
-
-//initial codegenration on load with last user assistant message
-  // useEffect(() => {
-  //   if (!initializedRef.current && messages.length > 1) {
-  //     initializedRef.current = true;
-
-  //     const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
-  //     const lastUserBeforeAssistant = [...messages]
-  //       .reverse()
-  //       .find((m, i, arr) => m.role === 'user' && arr[i - 1]?.role === 'assistant');
-
-  //     if (lastAssistant && lastUserBeforeAssistant) {
-  //       console.log("🌀 Regenerating code from last user message on load:", lastUserBeforeAssistant.content);
-  //       setIsGenerating?.(true); // ✅ Trigger loading overlay
-  //       generateCode(lastUserBeforeAssistant.content);
-  //     }
-  //   }
-  // }, [messages, projectId]);
-
   useEffect(() => {
-  const fetchLatestVersion = async () => {
-    if (!projectId || initializedRef.current) return;
-    initializedRef.current = true;
+    const fetchLatestVersion = async () => {
+      if (!projectId || initializedRef.current) return;
+      initializedRef.current = true;
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-    try {
-      setIsGenerating?.(true);
-      const res = await axios.get(`/projects/${projectId}/latest-version`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        setIsGenerating?.(true);
+        const res = await axios.get(`/projects/${projectId}/latest-version`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const files = res.data.files || [];
-      if (files.length === 0) {
-        console.log("📭 No files in latest version yet.");
-        return;
+        const files = res.data.files || [];
+        if (files.length === 0) return;
+
+        const parsedFiles = Object.fromEntries(
+          files.map((f) => [f.name, { code: f.content }])
+        );
+        onCodeGenerated?.(parsedFiles);
+      } catch (err) {
+        console.error("❌ Failed to fetch latest file version:", err);
+      } finally {
+        setIsGenerating?.(false);
       }
+    };
 
-      const parsedFiles = Object.fromEntries(
-        files.map((f) => [f.name, { code: f.content }])
-      );
-
-      console.log("✅ Loaded latest version files:", Object.keys(parsedFiles));
-      onCodeGenerated?.(parsedFiles);
-    } catch (err) {
-      console.error("❌ Failed to fetch latest file version:", err);
-    } finally {
-      setIsGenerating?.(false);
-    }
-  };
-
-  fetchLatestVersion();
-}, [projectId]);
+    fetchLatestVersion();
+  }, [projectId]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -102,9 +78,7 @@ export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
       const response = await axios.post(
         `/projects/${projectId}/messages`,
         { message: userMessage.content },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const { messages: updatedMessages, userMessage: uMsg, aiResponse } = response.data;
@@ -123,13 +97,9 @@ export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
           normalize(aiResponse),
         ];
         setMessages(newMessages);
-
-        // ✅ Trigger loading before code generation
         setIsGenerating?.(true);
-        console.log("⚡ Code generation triggered from chat response:", normalize(uMsg).content);
         await generateCode(normalize(uMsg).content);
       } else {
-        console.warn('Unexpected API response format after sending message:', response.data);
         fetchMessages();
       }
     } catch (error) {
@@ -139,106 +109,47 @@ export default function AIChatView({ onCodeGenerated, setIsGenerating }) {
     }
   };
 
+  const generateCode = async (userMessageText) => {
+    if (!userMessageText || !projectId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
-//working function
+    try {
+      const response = await axios.post(
+        `/projects/${projectId}/generate-code`,
+        { message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}` },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-  // const generateCode = async (userMessageText) => {
-  //   if (!userMessageText || !projectId) return;
+      const version = response.data?.version;
+      const generatedFilesArray = (response.data?.files || []).filter(
+        (file) => file?.name && typeof file.content === 'string' && file.content.trim() !== ''
+      );
 
-  //   const token = localStorage.getItem('token');
-  //   if (!token) return;
+      const generatedFiles = Object.fromEntries(
+        generatedFilesArray.map((f) => [f.name, { code: f.content }])
+      );
 
-  //   try {
-  //     console.log("🔧 Starting code generation with prompt:", userMessageText);
-  //     const response = await axios.post(
-  //       `/projects/${projectId}/generate-code`,
-  //       {
-  //         message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}`,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           'Content-Type': 'application/json',
-  //         },
-  //       }
-  //     );
-
-  //     const generatedFilesArray = (response.data?.files || []).filter(
-  //       (file) =>
-  //         file?.name &&
-  //         typeof file.content === 'string' &&
-  //         file.content.trim() !== ''
-  //     );
-
-  //     const generatedFiles = Object.fromEntries(
-  //       generatedFilesArray.map((f) => [f.name, { code: f.content }])
-  //     );
-
-  //     console.log("✅ Code generation completed. Files:", Object.keys(generatedFiles));
-
-  //     if (onCodeGenerated && typeof onCodeGenerated === 'function') {
-  //       onCodeGenerated(generatedFiles);
-  //     }
-  //   } catch (error) {
-  //     console.error("🔥 Code generation failed:", error);
-  //     if (error.response) console.error("🧾 Details:", error.response.data);
-  //   }
-  // };
-
-const generateCode = async (userMessageText) => {
-  if (!userMessageText || !projectId) return;
-
-  const token = localStorage.getItem('token');
-  if (!token) return;
-
-  try {
-    console.log("🔧 Starting code generation with prompt:", userMessageText);
-    
-    const response = await axios.post(
-      `/projects/${projectId}/generate-code`,
-      {
-        message: `${userMessageText} ${PROMPTS.CODE_GEN_PROMPT}`,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      if (onCodeGenerated && typeof onCodeGenerated === 'function') {
+        onCodeGenerated(generatedFiles, version);
       }
-    );
-
-    const version = response.data?.version;
-    const generatedFilesArray = Array.isArray(response.data?.files)
-      ? response.data.files.filter(
-          (file) =>
-            file?.name &&
-            typeof file.content === 'string' &&
-            file.content.trim() !== ''
-        )
-      : [];
-
-    const generatedFiles = Object.fromEntries(
-      generatedFilesArray.map((f) => [f.name, { code: f.content }])
-    );
-
-    console.log(`✅ Code generation completed (version ${version}). Files:`, Object.keys(generatedFiles));
-
-    if (onCodeGenerated && typeof onCodeGenerated === 'function') {
-      onCodeGenerated(generatedFiles, version); // Optional: version can be used in UI
+    } catch (error) {
+      console.error("🔥 Code generation failed:", error);
     }
-  } catch (error) {
-    console.error("🔥 Code generation failed:", error);
-    if (error.response) console.error("🧾 Details:", error.response.data);
-  }
-};
-
+  };
 
   const renderMessageContent = (content) => <Markdown>{content}</Markdown>;
 
-  // 🧠 UI remains untouched
   return (
-    <div className="flex flex-col h-166 max-w-lg lg:max-w-xl mx-auto bg-neutral-900">
-      <div className="flex-1 overflow-y-auto p-2 scrollbar-hidden space-y-2">
+<div className="flex flex-col h-screen overflow-hidden w-full max-w-full bg-neutral-950">
+
+      {/* Chat message container */}
+      <div className="flex-1 overflow-y-auto p-5  scrollbar-hidden mt-12">
         {loading && messages.length === 0 ? (
           <p className="text-center text-gray-500">Loading...</p>
         ) : messages.length > 0 ? (
@@ -248,12 +159,12 @@ const generateCode = async (userMessageText) => {
               className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                className={`max-w-[85%] px-3 py-2 rounded-2xl ${
                   msg.role !== 'user' ? 'prose prose-invert prose-sm max-w-none' : ''
                 } leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-neutral-800 text-white rounded-tr-none'
-                    : 'bg-neutral-900 text-white/80 rounded-tl-none'
+                    ? 'bg-neutral-900 text-white rounded-tr-none'
+                    : 'bg-neutral-950 text-white/80 rounded-tl-none'
                 }`}
               >
                 {msg.role === 'user' ? msg.content : renderMessageContent(msg.content)}
@@ -288,11 +199,13 @@ const generateCode = async (userMessageText) => {
             </div>
           </div>
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="sticky bottom-0 z-20 bg-neutral-800 backdrop-blur-sm rounded-2xl border border-neutral-700 p-3 m-3">
-        <div className="flex flex-col">
+      {/* Chat input */}
+      <div className="sticky bottom-0 z-20 bg-neutral-900/50  backdrop-blur-sm rounded-xl border border-neutral-700 p-3 mx-5 mb-5">
+        <div className="flex flex-col sm:flex-row items-end gap-2 ">
           <textarea
             ref={textareaRef}
             value={inputMessage}
@@ -309,42 +222,29 @@ const generateCode = async (userMessageText) => {
             }}
             disabled={loading}
           />
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={handleSendMessage}
-              disabled={loading || !inputMessage.trim()}
-              className={`p-2 rounded-full bg-neutral-200 text-neutral-900 transition-colors mb-1 flex items-center justify-center w-9 h-9 ${
-                loading || !inputMessage.trim()
-                  ? 'opacity-80 cursor-not-allowed'
-                  : 'hover:bg-neutral-400'
-              }`}
-            >
-              {loading ? (
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  />
-                </svg>
-              ) : (
-                <FaArrowUp size={14} />
-              )}
-            </button>
-          </div>
+          <button
+            onClick={handleSendMessage}
+            disabled={loading || !inputMessage.trim()}
+            className={`p-2 rounded-full bg-neutral-200 text-neutral-900 transition-colors mb-1 flex items-center justify-center w-10 h-10 ${
+              loading || !inputMessage.trim()
+                ? 'opacity-80 cursor-not-allowed'
+                : 'hover:bg-neutral-400'
+            }`}
+          >
+            {loading ? (
+              <svg
+                className="animate-spin h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+            ) : (
+              <FaArrowUp size={14} />
+            )}
+          </button>
         </div>
       </div>
     </div>
