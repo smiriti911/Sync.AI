@@ -5,6 +5,8 @@ import AiChatView from './AiChatView';
 import CodeView from './CodeView';
 import { AiChatProvider } from '@/context/AiChatContext';
 import Header from './WorkspaceHeader';
+import SideBar from './SideBar';
+
 
 const Workspace = ({ onToggleUserChat, isUserChatVisible }) => {
   const [generatedFiles, setGeneratedFiles] = useState({});
@@ -44,7 +46,7 @@ const Workspace = ({ onToggleUserChat, isUserChatVisible }) => {
   return (
     <AiChatProvider>
       <div className="w-full h-screen flex flex-col overflow-hidden bg-neutral-950">
-        
+              <SideBar/>
         {/* Header */}
         <Header
           activeTab={activeTab}

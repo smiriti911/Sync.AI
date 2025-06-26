@@ -3,8 +3,8 @@ import { FaArrowUp, FaLink } from "react-icons/fa6";
 import axios from "@/config/axios";
 import { useRouter } from 'next/navigation';
 
-export default function HeroInputBox({ input, setInput, onSubmit }) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function HeroInputBox({ input, setInput, onSubmit, setIsLoading: setGlobalLoading }) {
+  const [isLoading, setIsLocalLoading] = useState(false);
   const textareaRef = useRef(null);
   const router = useRouter();
 
@@ -23,7 +23,8 @@ export default function HeroInputBox({ input, setInput, onSubmit }) {
       return;
     }
 
-    setIsLoading(true);
+    setIsLocalLoading(true);
+    if (setGlobalLoading) setGlobalLoading(true); // 🔄 Trigger global overlay
 
     try {
       const res = await axios.post(
@@ -37,13 +38,13 @@ export default function HeroInputBox({ input, setInput, onSubmit }) {
         }
       );
 
-      console.log('Project created:', res.data);
       setInput('');
       router.push(`/userproject/${res.data._id}`);
     } catch (err) {
       console.log('Error creating project:', err?.response?.data || err.message);
     } finally {
-      setIsLoading(false);
+      setIsLocalLoading(false);
+      if (setGlobalLoading) setGlobalLoading(false); // ✅ Hide global overlay
     }
 
     if (onSubmit) onSubmit();
@@ -69,8 +70,10 @@ export default function HeroInputBox({ input, setInput, onSubmit }) {
       />
 
       <div className="flex justify-between items-center mt-2">
-        <button className="hover:opacity-80 transition cursor-pointer" disabled={isLoading}
-        onClick={() => router.push('/userprojects')} 
+        <button
+          className="hover:opacity-80 transition cursor-pointer"
+          disabled={isLoading}
+          onClick={() => router.push('/userprojects')}
         >
           <FaLink className="text-2xl" />
         </button>

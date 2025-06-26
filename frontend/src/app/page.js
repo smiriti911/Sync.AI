@@ -1,61 +1,37 @@
-// app/page.tsx or Home.tsx
 "use client";
 
 import React, { useState } from "react";
-import { BsStars } from "react-icons/bs";
 import { UserProvider } from "../context/user.context";
 import UserAuth from "../auth/UserAuth";
-import CreateProjectModal from "./components/CreateProjectModal";
-import CreateProjectButton from "./components/CreateProjectButton";
-import ProjectCard from "./components/ProjectCard";
-import Hero from "./components/Hero"; // Adjust the import path as necessary
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import SideBar from "./components/SideBar";
 
-import Header from "./components/Header"; // Adjust the import path as necessary
-import UserProjects from "./userprojects/page";
-import GradientBackground from "./components/GradientBackground";
-
-
-import Orb from "./components/Orb";
 export default function Home() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-   return (
+  return (
     <UserAuth>
       <Header />
-       <GradientBackground/>
-      {/* Orb in the background behind Hero */}
-      <div
-        style={{
-          position: "absolute",
-          top: -70,
-          left: 0,
-          width: "100%",
-          height: "100vh",
-          zIndex: -20, // Send behind Hero
-          overflow: "hidden",
-        }}
-      >
-        <Orb
-          hoverIntensity={0.5}
-          rotateOnHover={true}
-          hue={0}
-          forceHoverState={false}
-        />
+
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center space-y-2">
+            <div className="flex space-x-1">
+              <span className="w-3 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-3 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-3 h-3 bg-white rounded-full animate-bounce" />
+            </div>
+            <span className="text-white text-sm mt-2">Creating your project...</span>
+          </div>
+        </div>
+      )}
+         <div className="px-4">
+        <Hero setIsLoading={setIsLoading} />
       </div>
 
-      <main className="">
-        <Hero />
-      </main>
+      <SideBar/>
+
     </UserAuth>
   );
 }
-
-{/* <div className="mb-6">
-          <CreateProjectButton onClick={() => setIsModalOpen(true)} />
-        </div>
-
-        {isModalOpen && (
-          <CreateProjectModal onClose={() => setIsModalOpen(false)} />
-        )}
-
-        <ProjectCard /> */}

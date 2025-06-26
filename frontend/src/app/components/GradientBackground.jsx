@@ -8,7 +8,7 @@ export default function GradientBackground() {
 
       {/* Noise overlay */}
       <div
-        className="fixed inset-0 pointer-events-none opacity-10 z-[-10]"
+        className="absolute inset-0 pointer-events-none opacity-7 z-[-10]"
         style={{
           backgroundImage: "url('/noise.png')",
           backgroundRepeat: "repeat",
