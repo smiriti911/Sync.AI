@@ -26,7 +26,7 @@ export default function Home() {
           </div>
         </div>
       )}
-         <div className="px-4">
+         <div className="px-4 md:px-8 lg:px-16">
         <Hero setIsLoading={setIsLoading} />
       </div>
 
