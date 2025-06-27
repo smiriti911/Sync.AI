@@ -26,7 +26,8 @@ const UserAuth = ({ children }) => {
 
     if (!token || isTokenExpired(token)) {
       localStorage.removeItem('token'); // Clear token if expired or missing
-      router.push('/login');
+      router.push('/');
+      setLoading(false);
     } else if (user) {
       setLoading(false);
     } else {

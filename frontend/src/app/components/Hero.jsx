@@ -6,7 +6,10 @@ import InputBox from "./HeroInputBox";
 import SuggestionList from "./HeroSuggestions";
 import GradientBackground from "./GradientBackground";
 import Orb from "./Orb";
-import SideBar from "./SideBar"; // 👈 Make sure path is correct
+import UserAuth from "../../auth/UserAuth";
+
+import Aurora from "./Aurora";
+ // 👈 Make sure path is correct
 
 export default function Hero({ setIsLoading }) {
   const [input, setInput] = useState("");
@@ -26,22 +29,24 @@ export default function Hero({ setIsLoading }) {
   };
 
   return (
+    <UserAuth>
     <section className="relative w-full px-4 rounded-xl border border-neutral-800 overflow-hidden min-h-[90vh]">
 
       {/* 🔮 Background Gradient */}
-      <GradientBackground />
+     <GradientBackground/>
 
-      {/* 🌀 Orb */}
-      <div className="absolute top-0 left-0 w-full h-full -z-20 overflow-hidden">
-        <div className="absolute top-[-90px] left-1/2 -translate-x-1/2 w-[550px] h-[550px] sm:w-[650px] sm:h-[650px]">
-          <Orb
-            hoverIntensity={0.5}
-            rotateOnHover={true}
-            hue={0}
-            forceHoverState={false}
-          />
-        </div>
-      </div>
+ {/* 🌀 Orb (Aurora background) */}
+<div className="absolute left-0 w-full h-[700px] -z-10">
+  <div className="w-full h-full">
+    <Aurora
+      colorStops={["#FDC77C", "#FF66EB", "#6D48FE"]}
+      blend={0.5}
+      amplitude={0.3}
+      speed={0.5}
+    />
+  </div>
+</div>
+
 
 
       {/* 👤 Hero Content */}
@@ -56,5 +61,6 @@ export default function Hero({ setIsLoading }) {
         <SuggestionList suggestions={suggestions} onSelect={setInput} />
       </div>
     </section>
+    </UserAuth>
   );
 }

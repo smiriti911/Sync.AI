@@ -2,10 +2,20 @@
 import Link from 'next/link';
 import { FaPlus, FaFolderOpen } from 'react-icons/fa';
 import { useProjects } from '../../context/project.context'; // Adjust path as needed
-
+import { useRouter } from 'next/navigation';
 const SidePanel = () => {
   const { projects } = useProjects();
+  const router = useRouter();
 
+  const handleClick=async()=>{
+    const token = localStorage.getItem("token");
+    if(!token){
+      router.push('/login'); // Redirect to login if no token
+      return;
+    }else{
+      router.push('/userprojects');
+    }
+  }
   return (
     <div className="group fixed top-0 left-0 z-50">
       {/* 🟦 Enlarged invisible hover trigger area */}
@@ -27,27 +37,27 @@ const SidePanel = () => {
           <h2 className="text-lg font-semibold mb-6">Sync</h2>
 
           <nav className="flex flex-col gap-4">
-            <Link
-              href="/"
+            <button
+              onClick={()=>{router.push('/')}}
               className="flex items-center gap-3 text-sm hover:text-indigo-400 transition"
             >
               <FaPlus />
               New Chat
-            </Link>
+            </button>
 
-            <Link
-              href="/userprojects"
+            <button
+              onClick={handleClick}
               className="flex items-center gap-3 text-sm hover:text-indigo-400 transition"
             >
               <FaFolderOpen />
               Projects
-            </Link>
+            </button>
 
             <div className="mt-6">
               <h4 className="text-xs uppercase tracking-wider text-neutral-400 mb-2">
                 Recents
               </h4>
-              <ul className="space-y-2 text-sm max-h-60 overflow-y-auto pr-1">
+              <ul className="space-y-2 text-sm max-h-60 overflow-y-auto pr-1 scrollbar-hidden">
                 {projects.length > 0 ? (
                   projects.map((project) => (
                     <li

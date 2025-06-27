@@ -19,7 +19,7 @@ export default function HeroInputBox({ input, setInput, onSubmit, setIsLoading: 
 
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("No auth token found.");
+      router.push('/login'); // Redirect to login if no token
       return;
     }
 
@@ -37,9 +37,10 @@ export default function HeroInputBox({ input, setInput, onSubmit, setIsLoading: 
           },
         }
       );
-
-      setInput('');
+      setGlobalLoading(true);
       router.push(`/userproject/${res.data._id}`);
+      setInput('');
+      
     } catch (err) {
       console.log('Error creating project:', err?.response?.data || err.message);
     } finally {
@@ -58,7 +59,7 @@ export default function HeroInputBox({ input, setInput, onSubmit, setIsLoading: 
   };
 
   return (
-    <div className="mt-6 w-full max-w-2xl bg-neutral-900/60 rounded-2xl p-4 border-2 border-neutral-800/90">
+    <div className="mt-6 w-full max-w-2xl bg-neutral-900/40 rounded-2xl p-4 border-2 border-neutral-800/90">
       <textarea
         ref={textareaRef}
         placeholder="So, what are we building today?"
@@ -71,9 +72,8 @@ export default function HeroInputBox({ input, setInput, onSubmit, setIsLoading: 
 
       <div className="flex justify-between items-center mt-2">
         <button
-          className="hover:opacity-80 transition cursor-pointer"
+          className="hover:opacity-80 transition"
           disabled={isLoading}
-          onClick={() => router.push('/userprojects')}
         >
           <FaLink className="text-2xl" />
         </button>
