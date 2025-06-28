@@ -10,6 +10,7 @@ import UserAuth from "../../auth/UserAuth";
 
 import Aurora from "./Aurora";
  // 👈 Make sure path is correct
+import {BackgroundBeams} from "./BackgroundBeams"; // ✅ Import BackgroundBeams
 
 export default function Hero({ setIsLoading }) {
   const [input, setInput] = useState("");
@@ -30,27 +31,31 @@ export default function Hero({ setIsLoading }) {
 
   return (
     <UserAuth>
-    <section className="relative w-full px-4 rounded-xl border border-neutral-800 overflow-hidden min-h-[90vh]">
+<section 
+  className="relative w-full px-4 rounded-xl  overflow-hidden min-h-[80vh] shadow-2xl shadow-indigo-400/30"
+
+>
+
 
       {/* 🔮 Background Gradient */}
      <GradientBackground/>
 
- {/* 🌀 Orb (Aurora background) */}
-<div className="absolute left-0 w-full h-[700px] -z-10">
+      <BackgroundBeams className="absolute inset-0 pointer-events-none z-[-1]" />
+{/*       
+     <div className="absolute left-0 w-full h-[600px] -z-20">
   <div className="w-full h-full">
     <Aurora
       colorStops={["#FDC77C", "#FF66EB", "#6D48FE"]}
       blend={0.5}
-      amplitude={0.3}
-      speed={0.5}
+      amplitude={0.2}
+      speed={1.0}
     />
   </div>
-</div>
-
+</div> */}
 
 
       {/* 👤 Hero Content */}
-      <div className="relative z-10 flex flex-col items-center text-white pt-40 pb-5 sm:pt-45 sm:pb-10">
+      <div className="relative z-10 flex flex-col items-center text-white pt-30 pb-5 sm:pt-30 sm:pb-25">
         <HeroHeader />
         <InputBox
           input={input}

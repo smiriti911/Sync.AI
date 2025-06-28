@@ -46,7 +46,7 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full flex justify-between items-center px-2 sm:px-3 lg:px-11 xl:px-15 py-2 lg:py-2">
+    <header className="w-full flex justify-between items-center px-2 sm:px-3 lg:px-11 xl:px-15 py-3 lg:py-3">
       
       {/* Logo and Text Logo */}
       <div className="flex items-center gap-1">

@@ -28,7 +28,7 @@ const SidePanel = () => {
         className={`
           absolute top-14 left-0 h-[90vh] w-64
           transform -translate-x-full group-hover:translate-x-4
-          bg-neutral-900/40 backdrop-blur-md border border-neutral-700/40
+          bg-neutral-800/30 backdrop-blur-md border border-neutral-700/40
           rounded-xl overflow-hidden text-white shadow-2xl z-20
           transition-transform duration-300 ease-in-out
         `}
