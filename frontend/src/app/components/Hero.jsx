@@ -8,6 +8,7 @@ import GradientBackground from "./GradientBackground";
 import Orb from "./Orb";
 import UserAuth from "../../auth/UserAuth";
 
+
 import Aurora from "./Aurora";
  // 👈 Make sure path is correct
 import {BackgroundBeams} from "./BackgroundBeams"; // ✅ Import BackgroundBeams
@@ -41,6 +42,7 @@ export default function Hero({ setIsLoading }) {
      <GradientBackground/>
 
       <BackgroundBeams className="absolute inset-0 pointer-events-none z-[-1]" />
+      
 {/*       
      <div className="absolute left-0 w-full h-[600px] -z-20">
   <div className="w-full h-full">
