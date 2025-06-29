@@ -18,7 +18,7 @@ const Register=()=>{
       password
     }).then((res)=>{
       console.log(res.data);
-      router.push('/')
+      router.push('/login')
     })
 
   }
