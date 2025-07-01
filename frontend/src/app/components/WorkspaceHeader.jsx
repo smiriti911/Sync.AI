@@ -10,14 +10,14 @@ import { FaCode } from "react-icons/fa6";
 import { BsStars, BsLayoutSidebar } from "react-icons/bs";
 import { HiOutlineChatBubbleLeft } from "react-icons/hi2"; // user chat icon
 import { useSingleProject } from '../../context/singleProject.context';
-
+import { HiMenuAlt2 } from 'react-icons/hi';
 
 const rubik = Red_Rose({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 });
 
-const Header = ({ activeTab, setActiveTab, showChat, setShowChat, onToggleUserChat, isUserChatVisible }) => {
+const Header = ({ activeTab, setActiveTab, showChat, setShowChat, onToggleUserChat, isUserChatVisible, setIsSidebarOpen }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const { project } = useSingleProject();
@@ -49,9 +49,12 @@ const Header = ({ activeTab, setActiveTab, showChat, setShowChat, onToggleUserCh
 
   return (
     <header className="w-full flex justify-between items-center px-3 sm:px-5 lg:px-10 py-1 bg-neutral-950">
-      
+
       {/* Left: Logo + Toggles */}
       <div className="flex items-center gap-3">
+               <button className="text-indigo-300 text-3xl block sm:hidden cursor-pointer" onClick={()=>setIsSidebarOpen(true)} >
+                <HiMenuAlt2 />
+              </button>
         {/* Logo */}
         <button onClick={() => router.push('/')} className="flex items-center gap-2">
           <Image src="/logo11.png" alt="Logo" width={26} height={26} />

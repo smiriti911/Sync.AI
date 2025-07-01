@@ -53,7 +53,7 @@ const ChatArea = ({ onClose }) => {
   }, [message]);
 
   return (
-    <main className="h-screen flex">
+    <main className="min-h-screen flex">
       <SidePanel
         isOpen={isSidePanelOpen}
         togglePanel={() => setIsSidePanelOpen(!isSidePanelOpen)}

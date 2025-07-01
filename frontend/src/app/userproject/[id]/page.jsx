@@ -19,7 +19,7 @@ const ProjectPageContent = () => {
 <div className="relative min-h-screen flex flex-col bg-neutral-950">
   {/* Chat Sidebar */}
   <div
-    className={`fixed top-0 left-0 h-full w-[400px] z-50 transition-transform duration-500 ease-in-out ${
+    className={`fixed top-0 left-0 w-[400px] z-50 transition-transform duration-500 ease-in-out ${
       isChatVisible ? 'translate-x-0' : '-translate-x-full'
     }`}
   >

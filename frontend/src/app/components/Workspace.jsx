@@ -14,6 +14,8 @@ const Workspace = ({ onToggleUserChat, isUserChatVisible }) => {
   const [activeTab, setActiveTab] = useState('code');
   const [showChat, setShowChat] = useState(true);
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // Resize state
   const [chatWidth, setChatWidth] = useState(500); // default 500px
   const isDragging = useRef(false);
@@ -46,7 +48,7 @@ const Workspace = ({ onToggleUserChat, isUserChatVisible }) => {
   return (
     <AiChatProvider>
       <div className="w-full h-screen flex flex-col overflow-hidden bg-neutral-950">
-              <SideBar/>
+        <SideBar setIsSidebarOpen={setIsSidebarOpen} isSidebarOpen={isSidebarOpen}/>
         {/* Header */}
         <Header
           activeTab={activeTab}
@@ -55,6 +57,7 @@ const Workspace = ({ onToggleUserChat, isUserChatVisible }) => {
           setShowChat={setShowChat}
           onToggleUserChat={onToggleUserChat}
           isUserChatVisible={isUserChatVisible}
+          setIsSidebarOpen={setIsSidebarOpen}
         />
 
         {/* Main content */}
