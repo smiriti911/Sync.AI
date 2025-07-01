@@ -38,7 +38,7 @@ const AddCollaborator = ({ isOpen, togglePanel, onSelect }) => {
 
   return (
     <div
-      className={`fixed w-[385px] top-[2.75rem] left-2 transition-transform z-50 duration-300 ease-in-out h-[calc(100%-3.25rem)] 
+      className={`fixed w-[385px] mb-8 mt-8 left-2 transition-transform z-50 duration-300 ease-in-out h-[calc(100%-3.15rem)] 
       rounded-2xl border border-neutral-700 backdrop-blur-lg bg-neutral-950
       overflow-hidden flex flex-col
      ${isOpen ? "translate-x-0" : "-translate-x-[calc(100%+1rem)]"}

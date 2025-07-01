@@ -57,7 +57,7 @@ const SidebarContent = ({ projects, handleClick }) => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col h-full px-4 py-6">
+    <div className="flex flex-col min-h-full px-4 py-6">
       <h2 className="text-lg font-semibold mb-6">Sync</h2>
 
       <nav className="flex flex-col gap-4">
